@@ -90,9 +90,9 @@ all(colnames(counts) == rownames(metadata))
 
 > One of the most important aspect doing data analysis is to understand what kind of data formats you are using and the dimensions of these data modalities.
 >
-> 1.  What data types do you have here?
+> 1.  What is the type of the elements in `counts`?
 >
-> 2.  What dimensions does the data have?
+> 2.  What dimensions does the data in `counts` have? Answer should be a vector containing two elements i.e. the number of rows and columns respectively.
 >
 > *Hint*: Use commands from lab 1.
 
@@ -102,8 +102,11 @@ all(colnames(counts) == rownames(metadata))
 q1.ans1 <- NA
 q1.ans2 <- NA
 
-cat(sprintf("Data types: %s\nDimensions: %s", q1.ans1, q1.ans2))
-
+cat(sprintf(
+  "Data types: %s\nDimensions: %s", 
+  q1.ans1, 
+  paste(q1.ans2, collapse = ",")
+))
 ```
 
 ## Data visualization
@@ -357,14 +360,12 @@ Note that when your run a DE test using DESeq2, a more strict filtering is autom
 
 #### Q5
 
-> Exclude all genes in `counts` that have a total count across all samples less then or equal to 100. Use the skills you learned in Lab 1.
->
-> *Hint*: You should apply the filter to the `counts` matrix and overwrite it.
+> Exclude all genes in `counts` that have a total count across all samples less then or equal to 100. Use the skills you learned in Lab 1. 
 
 ```{r}
 
-# Write code here!
-
+# Replace NA with your answer
+counts_filt <- NA
 ```
 
 ### DESeq2
@@ -377,7 +378,7 @@ The code to do this is given below:
 
 ```{r create_deseq2_object}
 
-dds <- DESeqDataSetFromMatrix(countData = counts,
+dds <- DESeqDataSetFromMatrix(countData = counts_filt,
                               colData = metadata, 
                               design = ~0 + subtype)
 
@@ -412,7 +413,7 @@ dds
 
 After running `DESeq()`, we now have so called sizefactors stored in colData (1 size factor per column/sample). We can use these sizefactors to normalize our samples by dividing the raw count with the size factor which will adjust for differences in library sizes between the samples.
 
-To obtain the normalized data you can run `counts(dds, normalized = T)`.
+To obtain the normalized counts you can run `counts(dds, normalized = T)`.
 
 #### Q6
 
