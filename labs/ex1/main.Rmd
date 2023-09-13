@@ -14,7 +14,7 @@ output:
 ```{r setup, include=FALSE}
 # Document configurations, DO NOT EDIT
 knitr::opts_chunk$set(echo = TRUE, eval=FALSE)
-options(max.print=100)
+options(max.print=200)
 ```
 
 ```{r,echo = FALSE, eval =TRUE}
