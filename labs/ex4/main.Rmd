@@ -47,16 +47,16 @@ In this lab, we will explore a dataset generated with the 10x Genomics Visium te
 Visium utilize a solid array onto which oligonucleotide with spatial barcodes have been 
 printed at locations (spots) arranged in a hexagonal grid. These oligonucleotides all have 
 a poly-T sequence, allowing them to capture mRNA's by their poly-A tails. 
-A thin tissue slice, collected either from a fresh frozen of FFPE tissue block, is placed
+A thin tissue slice, collected either from a fresh frozen or FFPE tissue block, is placed
 on top of this array followed by enzymatic permeabilization to open up the cells in the tissue.
-mRNA moleculas can diffuse freely from the cells and a fraction of these molecules 
+mRNA moleculas can then diffuse freely from the cells and a fraction of these molecules 
 reach the barcoded surface where they can hybridize to the poly-T sequences.
 By reverse transcription, the barcodes of the oligonucleotides will be embedded in a cDNA 
-(complementary DNA) molecule synthesized from the captured mRNAs; hence, we know at which 
-spatial location (spot) that each transcript was captured. Once the cDNA molecules are sequenced, 
-we can map them back to their spatial position - using the spatial barcodes - and by doing so obtain
-spatial gene expression information. The Visium slide arrays have 5000 printed spots, but the 
-tissue section usually cover only a few thousand of these.
+(complementary DNA) molecule synthesized from the captured mRNAs; hence, we add the information
+of which spatial location (spot) that each transcript was captured. Once the cDNA molecules are
+sequenced, we can map them back to their spatial position - using the spatial barcodes -and by
+doing so obtain spatial gene expression information. The Visium slide arrays have 5000 printed
+spots, but the tissue section usually cover only a few thousand of these.
 
 One *key* fact that should be emphasized is that Visium does not operate on a single cell level yet. 
 The gene expression data associated with each spot is really *a mixture of contributions from multiple cells*, 
@@ -258,10 +258,11 @@ may proceed to prepare the data (and ourselves) for some fun analysis.
 ```
 
 How neat is that! Now we can see exactly where in the tissue we obtain higher numbers
-of unique genes. You have already seen the H%E image for the tissue section, so by 
-now you might have a clue about why some regions have higher numbers of genes than others.
-As so often in science, the answer is that it depends. For example, certain parts of the 
-tissue might be harder to permeabilize than others, which would result in lower mRNA capture.
+of unique genes. So why do certain reagions have higher number of unique genes? As so
+often in science, the answer is that it depends. You have already seen the H&E image
+for the tissue section, so by now you might have a clue about why some regions have
+higher numbers of genes than others. For example, certain parts of the tissue might be
+harder to permeabilize than others, which would result in lower mRNA capture.
 However, as a rule of thumb we expect to see higher numbers in more _cell dense_ regions.
 Information about cell density is easy to get from the H&E image where cell dens regions are
 tightly packed with dark blue nuclei (stained by the hematoxylin).
@@ -304,7 +305,7 @@ _ERBB2_  (a marker gene for HER2-positive breast cancer).
 ```{r plot_erbb2, fig.width=6, fig.height=6}
 
 # You can play around with the pt.size and pt.alpha (opacity) to make the background more 
-# visible
+# visible and also use add.alpha = T to further increase background visibility
 FeatureOverlay(se.HER2, features = "ERBB2", pt.size = 1.5, pt.alpha = 0.7)
 
 ```
@@ -370,14 +371,14 @@ q3_check(ans.q3)
 
 ```
 
-Having access to some new tools and gained more understanding of the data, we will now
-move on to even more exciting stuff!
+Having access to some new tools and gained more understanding of the data, we are now
+almost ready to move on to even more exciting stuff!
 
 ## Data Pre-processing
 
-Ehm.. so there is actually one more not-so-exciting thing left to do... data
-pre-processing, which includes filtering and normalization. But we are almost
-there!
+There is actually one more not-so-exciting but important thing left to do,
+data pre-processing, which includes filtering and normalization.
+But we are almost there!
 
 Just as with the single cell data, we want to curate our data to make sure that
 it's prepared for the downstream analysis. The first step in this procedure is
@@ -421,8 +422,8 @@ however chosen somewhat arbitrary.
 > Create a vector named `keep.spots` which contains the *names* of all spots with
 > **both** of the following criteria satisfied:
 >
-> 1.  `nCount_RNA` should be larger or equal to $2000$
-> 2.  `nFeature_RNA` should be larger or equal to $800$
+> 1.  `nCount_RNA` should be larger or equal to *2000*
+> 2.  `nFeature_RNA` should be larger or equal to *800*
 >
 > *Comment* : Do *not* make any changes to your Seurat object yet.
 
@@ -449,7 +450,7 @@ a gene is observed. We use a `log10` transformation with a pseudocount of 1 for
 (i), otherwise the histogram becomes very distorted. 
 
 _Comment_ : A pseudocount is added to make sure we never end up with having to
-do $\log(0)$ which is equal to the negative infinity, and we don't like to
+do `log(0)` which is equal to the negative infinity, and we don't like to
 work with infinite numbers...
 
 ```{r log_hist, fig.width=14, fig.height=5}
@@ -488,7 +489,7 @@ h3 + h4
 > We will apply a fairly stringent filtering; create an additional vector named
 > `keep.genes` with the **names** of the genes that satisfy both the following criteria:
 >
-> 1.  Total expression across all spots is larger or equal to $300$
+> 1.  Total expression across all spots is larger or equal to *300*
 > 2.  The gene should be observed (i.e., have a non-zero count) in *at least* 5 spots
 >     (about 0.2% of the data)
 >
@@ -584,7 +585,8 @@ won't ponder upon it here - but rather just apply it. As in the previous lab,
 the `SCTransform` function will be used for this purpose.
 
 _Comment_: This might take some time, so don't worry if you have to wait for a
-couple of minutes!
+couple of minutes! *verbose* is set to FALSE here but this can be removed to get 
+printed information what the function is currently doing and it's progress.
 
 ```{r sctrans, echo=FALSE, eval=TRUE}
 
@@ -656,13 +658,13 @@ _Comment_ : The cluster identities are stored in the metadata slot as
 `SCT_snn_res.resolution`, where `resolution` is equal to the parameter value
 used in `FindClusters()`. It is also stored in a separate column called "seurat_clusters"; 
 however, this column will only keep the latest clustering result. On other words, if you 
-rerun `FindCLusters()` with a different resolution, "seurat_clusters" will store those 
+rerun `FindClusters()` with a different resolution, "seurat_clusters" will store those 
 results instead.
 
 ```{r plot_clust, fig.width=6, fig.height=6}
 
 # plot clusters spatially
-FeatureOverlay(se.HER2, features = "seurat_clusters", pt.size = 1.5) &
+FeatureOverlay(se.HER2, features = "seurat_clusters", pt.size = 1.5, pt.alpha = 0.5) &
   guides(fill = guide_legend(override.aes = list(size = 5)))
 
 ```
@@ -754,10 +756,8 @@ de.markers.one <- de.markers %>%
   group_by(cluster) %>%
   slice_head(n = 1)
 
-# list to hold our plots
-plot.list <- list()
-
-FeatureOverlay(se.HER2, features = de.markers.one$gene, ncols = 3, pt.size = 1, show.sb = F)
+#Plot first marker gene for each cluster spatially
+FeatureOverlay(se.HER2, features = de.markers.one$gene, ncols = 3, pt.size = 1, pt.alpha = 0.5, show.sb = F)
 
 ```
 
@@ -780,7 +780,7 @@ composition of different contributions from respective factor. The process of
 retrieving and characterizing these factors, might be referred to as a form of
 **decomposition** or **factorization**.
 
-Such factors can be learnt from the data, but also defined _a priori; a good
+Such factors can be learnt from the data, but also defined _a priori_; a good
 example of the latter is when single cell data is integrated with spatial data
 (next section) - we can then consider the cell types associated expression
 profiles as latent factors. However, for now, we will focus on the case when we
