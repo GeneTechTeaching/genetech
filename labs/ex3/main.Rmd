@@ -354,6 +354,7 @@ source("checks.R")
 check_q6(n.genes.filt, n.cells.filt)
 ```
 
+**NB**: Failed the above check? Try to rerun all chunks above to make sure you have not modified the `se` or `se.subset` objects in some way. Select the dropdown menu next to "Run" and click "Run All Chunks Above".
 
 ## 5) Normalization
 
