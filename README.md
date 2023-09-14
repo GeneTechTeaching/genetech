@@ -113,13 +113,15 @@ When the process has finished, you should see a file called `main.html` in the f
 
 ![knit](imgs/knit.png)
 
-To download the `main.html` file, you can check the box next to it :ballot_box_with_check:, press the cog wheel :gear: icon above and select "Export..." from the dropdown menu.
-Now you get a popup where you can chose a file name and download the file to your computer. This is the file that you will upload 
-on Canvas! 
-
-**Make sure that you can open the file and that you can see the content of it before uploading.**
+To download the `main.html` file, you can check the box next to it :ballot_box_with_check:, 
+press the cog wheel :gear: icon above and select "Export..." from the dropdown menu.
 
 ![image](https://user-images.githubusercontent.com/27061883/192314278-7dc71f81-6889-4979-a684-77a3a1da53f3.png)
+
+Now you get a popup where you can chose a file name and download the file to your computer. If 
+you change the file name, make sure it end in `.html`. This is the file that you will upload on Canvas! 
+
+**Make sure that you can open the file and that you can see the content of it before uploading.**
 
 ### Deadlines
 
