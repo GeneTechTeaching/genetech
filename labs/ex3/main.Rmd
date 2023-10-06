@@ -682,7 +682,7 @@ In the result `data.frame` we can find quite a lot of information, but the most 
 
 ### Q11
 
-> Now run another FEA but this time on T-cell markers and set the `avg_log2FC` to 0.5 when selecting the marker genes. Use the same reference database as before (<GO:BP>). Then report the term name and p-value for the most significant term.
+> Now run another FEA but this time on T-cell markers and set the lower threshold for `avg_log2FC` to 0.5 when selecting the marker genes. Use the same reference database as before (<GO:BP>). Then report the term name and p-value for the most significant term.
 >
 > *Hint*: T-cells are the same as cluster 2.
 
