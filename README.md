@@ -195,10 +195,6 @@ preferred ways of learning.
 
 ## Contact Information
 
-* Sami Saarenpää : sami.saarenpaa@scilifelab.se
-* Pontus Höjer : pontus.hojer@scilifelab.se
-* Nayanika Bhalla : nayanika.bhalla@scilifelab.se
-* Marco Vicari : marco.vicari@scilifelab.se
-* Solène Frapard : solene.frapard@scilifelab.se
-* Mengxaio He : mengxiao.he@scilifelab.se
-* Artemy Zhigulev : artemy.zhigulev@scilifelab.se
+To address exercise-related queries, we recommend exploring resources such as Googling, discussing with classmates or attending the scheduled lab sessions. 
+
+If you have specific questions for the Teaching Assistants, please feel free to contact them via e-mail at ``genetechteaching@scilifelab.se``.
