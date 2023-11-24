@@ -65,7 +65,11 @@ install.packages(c("RColorBrewer", "Seurat", "dplyr", "ggplot2", "gprofiler2", "
 For CD2040 you also need to install these packages for the bulk RNA-seq lab
 
 ```{r}
-install.packages(c("DESeq2", "R.utils", "viridis"))
+install.packages(c("R.utils", "viridis"))
+if (!require("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+
+BiocManager::install("DESeq2")
 ```
 
 To install `STUtility` see: https://github.com/jbergenstrahle/STUtility#installation or run
