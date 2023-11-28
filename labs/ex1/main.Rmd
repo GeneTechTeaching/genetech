@@ -1086,7 +1086,7 @@ hist(log(rowSums(counts)),
 
 ```
 
-## R/Bioconductor (Skip if already done)
+## R/Bioconductor
 
 Bioconductor is a repository of R-packages specifically for biological analyses.
 It has relatively strict requirements for submission, including installation on
@@ -1096,16 +1096,29 @@ upcoming labs**.
 
 TLDR: "Bioconductor is a collection of bioinformatic tools".
 
-If you haven't already installed Bioconductor, run this in R:
+Installs from Bioconductor is handled by the BiocManager library. BiocManager
+should already be installed in your environment, but run the chunk below to 
+make sure.
 
 ```{r, eval=FALSE, echo = TRUE}
-install.packages("BiocManager")
+if (!require("BiocManager", quietly = TRUE))
+  install.packages("BiocManager")
 ```
 
 There are **a lot** of "packages" within bioconductor that you can install and
 use. To install a package from bioconductor use
 `BiocManager::install(PACKAGE_NAME)` where you replace `PACKAGE_NAME` with the
-package of interest, e.g. `BiocManager::install("SummarizedExperiment")`
+package of interest, e.g. `BiocManager::install("SummarizedExperiment")`. 
+
+> NB! Notation like this `BiocManager::install(PACKAGE_NAME)` allow us to use a 
+certain function (`install`) from a specific library (`BiocManager`) without 
+importing said library into the namespace (calling `library(BiocManager)`). 
+As some libraries will share functions, function could become shadowed, 
+therefore this notation is useful to make sure that you are requesting a 
+function from a particular library.
+
+Again, "SummarizedExperiment" should allready be installed but you are welcome 
+to try the command above yourself in the console.
 
 ## Working with SummarizedExperiment
 
