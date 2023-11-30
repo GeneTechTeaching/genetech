@@ -22,14 +22,14 @@ Also change the access for the project. This can be done by clicking the :gear: 
 
 In the terminal, go to the `/cloud/project` dir and clone the Github repo for the course
 
-```{bash}
+```bash
 cd /cloud/project
 git clone https://github.com/GeneTechTeaching/genetech.git
 ```
 
 This will create a folder `/cloud/project/genetech`.
 
-```{bash}
+```bash
 cd genetech
 ```
 
@@ -50,7 +50,7 @@ pheatmap
 R.utils # CD2040 only
 RColorBrewer
 rjson
-Seurat
+Seurat # Version must be <5 for STutility to work
 STutility
 SummarizedExperiment
 viridis # CD2040 only
@@ -58,13 +58,20 @@ viridis # CD2040 only
 
 Most can be installed directly using:
 
-```{r}
+```r
 install.packages(c("RColorBrewer", "Seurat", "dplyr", "ggplot2", "gprofiler2", "magrittr", "pheatmap", "rjson"))
+```
+
+For Seurat we will specify version 4.4 as 5 does not work with STutility.
+
+```r
+packageurl <- "https://cran.r-project.org/src/contrib/Archive/Seurat/Seurat_4.4.0.tar.gz"
+install.packages(packageurl, repos=NULL, type="source")
 ```
 
 For CD2040 you also need to install these packages for the bulk RNA-seq lab
 
-```{r}
+```r
 install.packages(c("R.utils", "viridis"))
 if (!require("BiocManager", quietly = TRUE))
     install.packages("BiocManager")
@@ -74,14 +81,14 @@ BiocManager::install("DESeq2")
 
 To install `STUtility` see: https://github.com/jbergenstrahle/STUtility#installation or run
 
-```{r}
+```r
 install.packages("remotes")
 remotes::install_github("jbergenstrahle/STUtility")
 ```
 
 To install `SummarizedExperiment` and `airway` run:
 
-```{r}
+```r
 if (!require("BiocManager", quietly = TRUE))
     install.packages("BiocManager")
 
@@ -94,7 +101,7 @@ Testrun all labs to check that all the checks pass and that they Rmarkdown files
 
 Remember to remove any solutions added to the `main.Rmd` files and any knitted files e.g. `main.html` once you are done. You can use the code below 
 
-```{bash}
+```bash
 cd /cloud/project/genetech
 git restore labs/*/main.Rmd
 rm -i labs/*/main.html
