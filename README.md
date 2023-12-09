@@ -193,6 +193,15 @@ preferred ways of learning.
 - Try to restart the current environment. Go to the `Session` dropdown menu and click `Restart R`. 
 - If you have an Adblocker running, disable it for the Posit Cloud webpage. 
 
+> I am unable to load a certain file within the Rmarkdown chunk or while knitting.
+> I get errors like `Error in file(...) cannot open the connection` or similar.
+
+- You path settings seems to have been changed. The code chunks (and knitting)
+  should be performed in the same directory as the Rmarkdown file you are
+  currently working on. See this section in the
+  (Rmarkdown cookbook)[https://bookdown.org/yihui/rmarkdown-cookbook/working-directory.html].
+  "Evaluate chunks in" should be set to "Document" and "Knit directory" should be "Document directory".
+
 ## Contact Information
 
 To address exercise-related queries, we recommend exploring resources such as Googling, discussing with classmates or attending the scheduled lab sessions. 
