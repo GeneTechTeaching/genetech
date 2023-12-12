@@ -62,11 +62,13 @@ Most can be installed directly using:
 install.packages(c("RColorBrewer", "Seurat", "dplyr", "ggplot2", "gprofiler2", "magrittr", "pheatmap", "rjson"))
 ```
 
-For Seurat we will specify version 4.4 as 5 does not work with STutility.
+For Seurat we will specify version 4.4 as 5 does not work with STutility. We also need a specific version of SeuratObject. 
 
 ```r
 packageurl <- "https://cran.r-project.org/src/contrib/Archive/Seurat/Seurat_4.4.0.tar.gz"
 install.packages(packageurl, repos=NULL, type="source")
+packageurl2 <- "https://cran.r-project.org/src/contrib/Archive/SeuratObject/SeuratObject_4.1.4.tar.gz"
+install.packages(packageurl2, repos=NULL, type="source")
 ```
 
 For CD2040 you also need to install these packages for the bulk RNA-seq lab
