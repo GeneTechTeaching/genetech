@@ -53,13 +53,13 @@ rjson
 Seurat # Version must be <5 for STutility to work
 STutility
 SummarizedExperiment
-viridis # CD2040 only
+viridis
 ```
 
 Most can be installed directly using:
 
 ```r
-install.packages(c("RColorBrewer", "Seurat", "dplyr", "ggplot2", "gprofiler2", "magrittr", "pheatmap", "rjson"))
+install.packages(c("RColorBrewer", "Seurat", "dplyr", "ggplot2", "gprofiler2", "magrittr", "pheatmap", "rjson", "viridis"))
 ```
 
 For Seurat we will specify version 4.4 as 5 does not work with STutility. We also need a specific version of SeuratObject. 
@@ -74,7 +74,7 @@ install.packages(packageurl2, repos=NULL, type="source")
 For CD2040 you also need to install these packages for the bulk RNA-seq lab
 
 ```r
-install.packages(c("R.utils", "viridis"))
+install.packages(c("R.utils"))
 if (!require("BiocManager", quietly = TRUE))
     install.packages("BiocManager")
 
