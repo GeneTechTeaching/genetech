@@ -211,6 +211,8 @@ rm(list = ls())
 gc()
 ```
 
+After this it might also be a good idea to restart you R session by going to the top menu and clicking `Session` -> `Restart R`.
+
 ## Contact Information
 
 To address exercise-related queries, we recommend exploring resources such as Googling, discussing with classmates or attending the scheduled lab sessions. 
