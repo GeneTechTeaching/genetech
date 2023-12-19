@@ -199,8 +199,17 @@ preferred ways of learning.
 - You path settings seems to have been changed. The code chunks (and knitting)
   should be performed in the same directory as the Rmarkdown file you are
   currently working on. See this section in the
-  (Rmarkdown cookbook)[https://bookdown.org/yihui/rmarkdown-cookbook/working-directory.html].
+  [Rmarkdown cookbook](https://bookdown.org/yihui/rmarkdown-cookbook/working-directory.html).
   "Evaluate chunks in" should be set to "Document" and "Knit directory" should be "Document directory".
+
+> I am unable to knit lab due to memory (RAM) being full, knitting stops before completing.
+
+This will sometimes happen in the later lab as you have accumulate a lot of junk in your environment. Clear up you environment and garbage collection before knitting by running the code below in the R console. 
+
+```r
+rm(list = ls())
+gc()
+```
 
 ## Contact Information
 
