@@ -95,7 +95,6 @@ Next, let us load some the libraries that we will use in this lab.
 
 ```{r load_libs, echo = FALSE, eval = TRUE}
 
-# library(STutility)
 library(semla)
 library(ggplot2)
 library(dplyr)
@@ -104,6 +103,7 @@ library(RColorBrewer)
 library(magrittr)
 library(singlet)
 library(pheatmap) 
+library(tidyverse)
 
 ```
 
@@ -304,11 +304,11 @@ p1 <- ggplot(data = coords.a, aes(x = x, y = -y, color = sampleID)) +
   theme(plot.margin = unit(c(0.05, 0.05, 0.05, 0.05), "npc")) +
   guides(color = "none")
 
-p2 <- MapLabels(se.HER2, column_name = "orig.ident", pt_size = 1) &
+p2 <- MapLabels(se.HER2, column_name = "orig.ident", pt_size = 1, override_plot_dims = TRUE) &
   theme(legend.title = element_blank(),
         legend.position = "none",
         plot.subtitle = element_blank())
-p2 <- ModifyPatchworkTitles(p, titles = c("Semla's plotting")) 
+p2 <- ModifyPatchworkTitles(p2, titles = c("Semla's plotting")) 
 
 p <- p1 + ggtitle("Your own plotting!") | p2
 p
@@ -400,7 +400,8 @@ MapFeatures(se.HER2,
             image_use = "raw",
             pt_alpha = 0.7,
             # scale_alpha = TRUE,
-            pt_size = 1.5)
+            pt_size = 1.5,
+            slot = "counts")
 
 ```
 
@@ -647,7 +648,7 @@ keep.genes <- keep.genes[!grepl("^(MT-|RPL|RPS)", keep.genes)]
 ```{r q6}
 
 # enter code to subset your Seurat object in place of "..."
-se.HER2 <- SubsetSTData(...)
+# se.HER2 <- SubsetSTData(...)
 
 # inspect Seurat object
 se.HER2
@@ -994,8 +995,8 @@ RankPlot(se.HER2)
 
 ```
 
-We can see that the global minimum of the bottom function is achieved at x = 22, 
-so the model has determined that 22 factors can describe the variability of our dataset.
+We can see that the global minimum of the bottom function is achieved at x = 20, 
+so the model has determined that 20 factors can describe the variability of our dataset.
 
 The NNMF output is stored as a `DimReduc` (dimensionality reduction) object in 
 our `Seurat` object. We can actually think of NNMF as a dimensionality reduction 
@@ -1096,7 +1097,7 @@ q10_check(list(q10.ans1, q10.ans2))
 
 ```
 
-Factor 21 looks kinda interesting, almost as if it's surrounding the DCIS
+Factor 20 looks kinda interesting, almost as if it's surrounding the DCIS
 regions, let us have a closer look at which genes that are most strongly
 associated with this factor.
 
@@ -1104,7 +1105,7 @@ associated with this factor.
 ```{r plot_fctr7}
 
 PlotFeatureLoadings(se.HER2, 
-                    dims = 21, 
+                    dims = 20, 
                     reduction = "nmf", 
                     nfeatures = 30,
                     mode = "dotplot", 
@@ -1137,7 +1138,7 @@ reacting somehow to the cancerous lesion?
 # Answer Q11 with the number of the process you think is the right one
 ans.q11 <- 3
 
-print(sprintf("Factor 21 is associated with process %d", ans.q11))
+print(sprintf("Factor 20 is associated with process %d", ans.q11))
 
 ```
 
