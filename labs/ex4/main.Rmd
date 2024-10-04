@@ -10,7 +10,7 @@ output:
       collapse: false
     theme: "readable"
 ---
-<!-- Lab creator: Alma Andersson, Ludvig Larsson -->
+<!-- Lab creator: Alma Andersson, Ludvig Larsson, Javier Escudero -->
 
 # Lab - Spatial Transcriptomics
 
@@ -49,7 +49,7 @@ printed at locations (spots) arranged in a hexagonal grid. These oligonucleotide
 a poly-T sequence, allowing them to capture mRNA's by their poly-A tails. 
 A thin tissue slice, collected either from a fresh frozen or FFPE tissue block, is placed
 on top of this array followed by enzymatic permeabilization to open up the cells in the tissue.
-mRNA moleculas can then diffuse freely from the cells and a fraction of these molecules 
+mRNA molecules can then diffuse freely from the cells and a fraction of these molecules 
 reach the barcoded surface where they can hybridize to the poly-T sequences.
 By reverse transcription, the barcodes of the oligonucleotides will be embedded in a cDNA 
 (complementary DNA) molecule synthesized from the captured mRNAs; hence, we add the information
@@ -58,9 +58,23 @@ sequenced, we can map them back to their spatial position - using the spatial ba
 doing so obtain spatial gene expression information. The Visium slide arrays have 5000 printed
 spots, but the tissue section usually cover only a few thousand of these.
 
-One *key* fact that should be emphasized is that Visium does not operate on a single cell level yet. 
+One *key* fact that should be emphasized is that Visium does not operate on a single cell level. 
 The gene expression data associated with each spot is really *a mixture of contributions from multiple cells*, 
 not all necessarliy of the same cell type.
+
+At the beginning of 2024, 10X Genomics released a new version of Visium, named *VisiumHD*, which aims
+to correct this very issue by changing the structure of the array. The spots printed on 
+the Visium arrays have a diameter of 55um, which is the main reason multiple cells are 
+captured in each spot (the average size of a eukaryote cell is around 10um in diameter). 
+With VisiumHD, the printed "spots" have a size of 2um, which implies a significant increase 
+in the resolution of the technology. At the same time, the whole surface of the array is 
+covered in capture areas, with no empty space between them. This is different from the normal
+Visium arrays, that have empty space between each spot. 
+You can think of the Visium arrays as a dalmatian's fur, and the VisiumHD arrays as squared notebook.
+
+Anyway, for this lab we will focus exclusively on the analysis of Visium data, as it is 
+more straightforward than VisiumHD's.
+
 
 
 ## Configure Rmarkdown and load packages
@@ -81,13 +95,15 @@ Next, let us load some the libraries that we will use in this lab.
 
 ```{r load_libs, echo = FALSE, eval = TRUE}
 
-library(STutility)
+library(semla)
 library(ggplot2)
 library(dplyr)
 library(rjson)
 library(RColorBrewer)
 library(magrittr)
-library(pheatmap)
+library(singlet)
+library(pheatmap) 
+library(tidyverse)
 
 ```
 
@@ -99,8 +115,7 @@ company behind Visium - kindly provide some "example" datasets on their
 webpage, which is where this sample is taken from.
 
 Rather than storing the data in the GitHub repository, we'll download it on the
-fly. The `bash` code below takes care of this, all you need to do is to execute
-it.
+fly. The code below takes care of this, all you need to do is to execute it.
 
 ```{r download_files, echo=FALSE, eval=FALSE}
 
@@ -144,11 +159,11 @@ will output an expression matrix and meta-data with information regarding how
 the spot coordinates relate to the pixel coordinates in the HE-image (i.e.,
 pairing expression data and image data).
 
-Below we will use the `STUtility` R package to load all the data we need for the lab. 
-The data will be stored in a `Seurat` object, just like the ones we used in lab 3,
-just slightly modified by `STUtility` to hold the additional spatial information.
-With `STUtility`, we will also have access to a bunch of useful functions designed 
-to work with spatial data. 
+Below we will use the `semla` R package to load all the data we need for the lab.
+The data will be stored in a `Seurat` object, just like the one used in lab 3.
+While the object structure is similar, there are a few extras here that will hold
+the spatial information. With `semla` we also have access to a lot of very useful
+functions designed to work with spatial data.
 
 ```{r load_data}
 
@@ -160,7 +175,7 @@ infoTable <- data.frame(samples = "./data/filtered_feature_bc_matrix.h5",
                         json = "./data/spatial/scalefactors_json.json")
 
 # Here we create a Seurat object from our newly created infoTable data.frame
-se.HER2 <- InputFromTable(infoTable)
+se.HER2 <- ReadVisiumData(infoTable)
 
 ```
 
@@ -174,8 +189,8 @@ se.HER2
 ```
 
 We can also easily extract meta data from our Seurat object by running 
-`se.HER2[[]]`. So far, we have five columns named "orig.ident", "nCount_RNA", 
-"nFeature_RNA", "id" and "labels".
+`se.HER2[[]]`. So far, we have three columns named "orig.ident", "nCount_Spatial", 
+"nFeature_Spatial".
 
 ```{r head_data}
 
@@ -192,7 +207,7 @@ head(se.HER2[[]])
 > 3.  How many UMI's in total do we have, i.e., total amount of observed transcripts?
 > 4.  What is the name of the 1306th gene?
 >
-> *hint* : You can use the function `GetAssayData()` to retrieve to expression matrix
+> *hint* : You can use the function `LayerData()` to retrieve to expression matrix
 > (i.e. UMI counts).
 
 Give your answers below
@@ -203,10 +218,10 @@ Give your answers below
 # by assigning the values (answers) to
 # the variables ans1, ans2, ans3 and ans4
 
-ans1 <- NA
-ans2 <- NA
-ans3 <- NA
-ans4 <- NA
+ans1 <- 3798 #NA
+ans2 <- 36601 # NA
+ans3 <- sum(se.HER2$nCount_Spatial)
+ans4 <- "LINC01360"# NA
 
 cat(sprintf("No. spots: %d \nNo genes: %d\nTotal no. UMIs: %d\n1306th gene: %s", ans1, ans2, ans3, ans4))
 
@@ -216,7 +231,7 @@ You can now check the answers by running the code chunk below!
 
 ```{r q1_check, warning=TRUE}
 
-source("checks.R")
+source("checks_semla.R")
 q1_check(ans = list(ans1, ans2, ans3, ans4))
 
 ```
@@ -224,15 +239,15 @@ q1_check(ans = list(ans1, ans2, ans3, ans4))
 Let us now make some use of this data that we worked so hard for to obtain! A
 good first task, and also a sanity check to make sure that everything went as
 expected, is to plot the spots according to their spatial coordinates, which you 
-can do with the `ST.FeaturePlot()` function. 
+can do with the `MapLabels()` function. 
 
-Note that requires a `feature` value to draw on the plot. Here we use "orig.ident" 
+Note that requires a `column_name` value to draw on the plot. Here we use "orig.ident" 
 which is automatically added to your Seurat object when it is created.
 
 ```{r plot_outline, fig.width=6, fig.height=6}
 
 # You can adjust the point size by changing the value for pt.size
-ST.FeaturePlot(se.HER2, features = "orig.ident", pt.size = 2)
+MapLabels(se.HER2, column_name = "orig.ident", pt_size = 1.5)
 
 ```
 
@@ -241,6 +256,68 @@ above the image we see a number that tells us what section we're looking at (her
 and on the right hand side you can see the content of our selected feature which the spots are 
 colored by (here we only have 1 category, so we get one color).
 
+Now, doing stuff with available libraries is very useful, but it is also very
+important to get a feeling of what the data you are working with contains. You can
+easily recreate the plot we've done above with your own custom code, simply by 
+accessing the relevant information either inside of your loaded Seurat object,
+or by looking at the input files directly. We need the following information:
+1. The coordinates _x and y_ of the spots.
+2. Something similar to the _orig.ident_ column.
+
+```{r retrieve_spatial_coordinates}
+
+# from the seurat object
+# we can access the spatial coordinates from the seurat object by ourselves
+coords.a <- se.HER2@tools[["Staffli"]]@meta_data %>% 
+  select(c(barcode, x, y, sampleID))
+# by using a function from semla
+coords.b <- GetCoordinates(se.HER2) %>% 
+  select(c(barcode, x, y, sampleID))
+
+# from the input files
+coords.c <- read_csv("./data/spatial/tissue_positions_list.csv", 
+                     col_names = FALSE, col_types = "ciiiii")
+colnames(coords.c) <- c("barcode", "in_tissue", "y", "x", "pxl_row_in_fullres", "pxl_col_in_fullres")
+coords.c <- coords.c %>% 
+  filter(in_tissue == 1) %>% 
+  select(c(barcode, x, y)) %>% 
+  mutate(sampleID = as.integer(1)) %>% 
+  arrange(barcode)
+
+# check that all ways to obtain the information render the same dataframe
+head(coords.a)
+head(coords.b)
+head(coords.c)
+identical(coords.a, coords.b)
+identical(coords.a, coords.c)
+
+```
+
+Awesome! Now that we have retrieved the spatial information, we can move on to
+do some spatial plotting of our own! 
+
+```{r manual_plotting}
+
+p1 <- ggplot(data = coords.a, aes(x = x, y = -y, color = sampleID)) +
+  geom_point(size = 1) +
+  theme_void() +
+  theme(plot.margin = unit(c(0.05, 0.05, 0.05, 0.05), "npc")) +
+  guides(color = "none")
+
+p2 <- MapLabels(se.HER2, column_name = "orig.ident", pt_size = 1, override_plot_dims = TRUE) &
+  theme(legend.title = element_blank(),
+        legend.position = "none",
+        plot.subtitle = element_blank())
+p2 <- ModifyPatchworkTitles(p2, titles = c("Semla's plotting")) 
+
+p <- p1 + ggtitle("Your own plotting!") | p2
+p
+
+```
+
+Great job!! Now we are gonna have to be careful, with skills like that you might
+put us out of a job.
+
 If you scroll back to the HE-image above, you can clearly see how the spots
 resemble the tissue outlines. This is positive, at least we now know that our
 data isn't a complete mess, i.e., so far so good. With these affirmations, we
@@ -248,8 +325,15 @@ may proceed to prepare the data (and ourselves) for some fun analysis.
 
 ### Q2
 
-> Use `ST.FeaturePlot()` to visualize the number of unique genes ("nFeature_RNA") per
-> spot. Add an argument palette = "Spectral" to get a more fancy color scale.
+> Use `MapFeatures()` to visualize the number of unique genes ("nFeature_Spatial") per
+> spot. Add an argument *colors = viridis::turbo(11)* to get a more fancy color scale.
+
+_Comment_ : While `MapLabels()` and `MapFeatures()` are different functions, they achieve the same
+goal: plotting information with spatial coordinates. Their main difference is that 
+`MapLabels()` is used for plotting categorical variables (like the identity of our spots), 
+while `MapFeatures()` is used for discrete/continuous variables (like the total number of
+unique genes per spot). `MapFeatures()` requires an argument named `feature`,
+while `MapLabels()` required one named `column_name`
 
 ```{r q2, fig.width=6, fig.height=6}
 
@@ -258,13 +342,13 @@ may proceed to prepare the data (and ourselves) for some fun analysis.
 ```
 
 How neat is that! Now we can see exactly where in the tissue we obtain higher numbers
-of unique genes. So why do certain reagions have higher number of unique genes? As so
+of unique genes. So why do certain regions have higher number of unique genes? As so
 often in science, the answer is that it depends. You have already seen the H&E image
 for the tissue section, so by now you might have a clue about why some regions have
 higher numbers of genes than others. For example, certain parts of the tissue might be
 harder to permeabilize than others, which would result in lower mRNA capture.
 However, as a rule of thumb we expect to see higher numbers in more _cell dense_ regions.
-Information about cell density is easy to get from the H&E image where cell dens regions are
+Information about cell density is easy to get from the H&E image where cell dense regions are
 tightly packed with dark blue nuclei (stained by the hematoxylin).
 
 So far we plotted the spots and then compared them to the tissue image, but
@@ -275,21 +359,24 @@ overlaid on the tissue.
 First, we need to load the H%E image(s) into the Seurat object using the `LoadImages()` 
 function. We can then plot our H&E image(s) with the `ImagePlot()` function. It's way 
 easier and faster to work with small images, so we will downscale the image to have a 
-width of 600 pixels by setting `xdim = 600`.
+width of 600 pixels by setting `image_height = 600`.
 
 ```{r, fig.width=6, fig.height=6}
 
-se.HER2 <- LoadImages(se.HER2, time.resolve = FALSE, xdim = 600)
-ImagePlot(se.HER2, method = "raster")
+se.HER2 <- LoadImages(se.HER2, image_height = 600)
+ImagePlot(se.HER2)
 
 ```
 
-Then, if we want to plot features on top of our H%E image(s), we use the
-`FeatureOverlay()` function instead of `ST.FeaturePlot()`.
+Then, if we want to plot features on top of our H&E image(s), we will use the
+`MapFeatures()` function again, but this time with an extra argument `image_use = "raw"`
 
 ```{r plot_counts, fig.width=6, fig.height=6}
 
-FeatureOverlay(se.HER2, features = "nFeature_RNA", palette = "heat")
+MapFeatures(se.HER2, 
+            feature = "nFeature_Spatial", 
+            colors = viridis::turbo(11), 
+            image_use = "raw")
 
 ```
 
@@ -304,9 +391,17 @@ _ERBB2_  (a marker gene for HER2-positive breast cancer).
 
 ```{r plot_erbb2, fig.width=6, fig.height=6}
 
-# You can play around with the pt.size and pt.alpha (opacity) to make the background more 
-# visible and also use add.alpha = T to further increase background visibility
-FeatureOverlay(se.HER2, features = "ERBB2", pt.size = 1.5, pt.alpha = 0.7)
+# You can play around with the pt_size and pt_alpha (opacity) to make the background more 
+# visible and also use scale_alpha = TRUE to scale the spots' transparency to the value of
+# the variable to plot, further increasing background visibility. scale_alpha will only work if
+# you dont have a pt_alpha set.
+MapFeatures(se.HER2, 
+            feature = "ERBB2", 
+            image_use = "raw",
+            pt_alpha = 0.7,
+            # scale_alpha = TRUE,
+            pt_size = 1.5,
+            slot = "counts")
 
 ```
 
@@ -339,7 +434,7 @@ plot(im_ann)
 
 ### Q3
 
-> Armed with the `FeatureOverlay()` function, it's now up to you to find out which
+> Armed with the `MapFeatures()` function, it's now up to you to find out which
 > **one** of these genes below, that are highly expressed in in one or more of the
 > *DCIS* regions while less prominently expressed in the remaining part of the tissue.
 >
@@ -349,14 +444,14 @@ plot(im_ann)
 > -   MALAT1
 > -   ACTA1
 >
-> Use the `FeatureOverlay()` function inspect the spatial distribution of these genes 
+> Use the `MapFeatures()` function inspect the spatial distribution of these genes 
 > and compare to pathologists annotated image above. Once you have your answer, plot 
 > that gene only!
 
 ```{r q3, fig.width=7, fig.height=6}
 
 # Plot the gene expressed mainly in the DCIS region here
-# using the FeatureOverlay() function
+# using the MapFeatures() function, include the HE image in the plot
 
 ```
 
@@ -364,7 +459,7 @@ Write down the gene expressed mainly in the DCIS region and check your answer.
 
 ```{r check_q3, warning=TRUE}
 # Replace NA with the gene highly expressed in the DCIS region here
-ans.q3 <- NA
+ans.q3 <- "MGP"# NA
 
 source("checks.R")
 q3_check(ans.q3)
@@ -387,7 +482,7 @@ the tissue (but still were - falsely - identified as such by the 10x
 bioinformatics software).
 
 To get a better sense of what spots we should remove, we will look at the
-histograms of the meta data `nCount_RNA` and `nFeatures_RNA`. The former
+histograms of the meta data `nCount_Spatial` and `nFeatures_Spatial`. The former
 informs us of the total number of observed transcript in each spot, while the
 latter is informative of how many _different_ genes that we observe in
 respective spot.
@@ -395,14 +490,14 @@ respective spot.
 ```{r plot_hist, fig.width = 14, fig.height = 5}
 
 # generate histograom of UMI counts
-h1 <- ggplot(se.HER2[[]], aes(nCount_RNA)) +
+h1 <- ggplot(se.HER2[[]], aes(nCount_Spatial)) +
   geom_histogram(fill = "red", alpha = 0.7, bins = 60) +
   geom_vline(xintercept = 2000, color = "black", linetype = "dashed") +
   labs(x = "No. Spots",
        y = "No. Transcripts",
        title = "Histogram | Total counts")
 
-h2 <- ggplot(se.HER2[[]], aes(nFeature_RNA)) +
+h2 <- ggplot(se.HER2[[]], aes(nFeature_Spatial)) +
   geom_histogram(fill = "blue", alpha = 0.7, bins = 60) +
   geom_vline(xintercept = 800, color = "black", linetype = "dashed") +
   labs(x = "No. Spots",
@@ -413,8 +508,8 @@ h1 + h2
 
 ```
 
-Dashed black lines have been added at the values 2000 (`nCount_RNA`) and 800
-(`nFeature_RNA`), these are the limits which we will settle on - these are
+Dashed black lines have been added at the values 2000 (`nCount_Spatial`) and 800
+(`nFeature_Spatial`), these are the limits which we will settle on - these are
 however chosen somewhat arbitrary.
 
 ### Q4
@@ -422,8 +517,8 @@ however chosen somewhat arbitrary.
 > Create a vector named `keep.spots` which contains the *names* of all spots with
 > **both** of the following criteria satisfied:
 >
-> 1.  `nCount_RNA` should be larger or equal to *2000*
-> 2.  `nFeature_RNA` should be larger or equal to *800*
+> 1.  `nCount_Spatial` should be larger or equal to *2000*
+> 2.  `nFeature_Spatial` should be larger or equal to *800*
 >
 > *Comment* : Do *not* make any changes to your Seurat object yet.
 
@@ -431,14 +526,18 @@ however chosen somewhat arbitrary.
 
 # Enter code to create the keep.spots vector here
 # Replace NA for the code that generates the requested output.
-keep.spots <- NA
+
+keep.spots <- se.HER2[[]] %>% 
+  filter(nFeature_Spatial >= 800 & nCount_Spatial >= 2000) %>% 
+  rownames()  #NA
+
 ```
 
 Now you can check your answer below before you proceed!
 
 ```{r check_q4, warning=TRUE}
 
-source("checks.R")
+source("checks_semla.R")
 q4_check(ans = keep.spots)
 
 ```
@@ -457,14 +556,14 @@ work with infinite numbers...
 
 # Compute total transcripts over all spots, which
 # is equal to the row sums of our expression matrix
-nCount.UMI <- Matrix::rowSums(GetAssayData(se.HER2))
+nCount.UMI <- Matrix::rowSums(LayerData(se.HER2, assay = "Spatial", layer = "counts"))
 
 # Compute number of spots each gene has been observed at.
 # What we do here is to first create a logical matrix 
 # which tells us if the expression is larger than 0. 
 # Then we can simply compute the row sums to get 
 # the number of spots each gene is detected in.
-nObs.genes <- Matrix::rowSums(GetAssayData(se.HER2) > 0)
+nObs.genes <- Matrix::rowSums(LayerData(se.HER2) > 0)
 
 # construct new data frame with the information extracted above
 gene.data <- data.frame(nCounts = nCount.UMI, nObs = nObs.genes)
@@ -499,14 +598,17 @@ h3 + h4
 
 # Enter code to create the keep.genes vector here
 # Replace NA for the code that generates the requested output.
-keep.genes <- NA
+
+keep.genes <- unique(filter(gene.data, nCounts >= 300 &
+                              nObs > 5) %>% rownames())
+# keep.genes <- NA
 ```
 
 Again, you can check whether your answers are correct with the next code chunk!
 
 ```{r check_q5, warning=TRUE}
 
-source("checks.R")
+source("checks_semla.R")
 q5_check(keep.genes)
 
 ```
@@ -535,7 +637,7 @@ keep.genes <- keep.genes[!grepl("^(MT-|RPL|RPS)", keep.genes)]
 > Subset your Seurat object `se.HER2` using the vectors `keep.spots` and `keep.genes`
 > with the `SubsetSTData()` function. The subsetted Seurat object should still be named
 > `se.HER2` (i.e., you should overwrite the old one). `SubsetSTData()` is a function
-> provided in `STUtility` which can take a vector of spots that should be passed to the
+> provided in `semla` which can take a vector of spots that should be passed to the
 > `spots=` argument and a vector of genes that should be passed to the `features=`
 > argument.
 >
@@ -546,7 +648,7 @@ keep.genes <- keep.genes[!grepl("^(MT-|RPL|RPS)", keep.genes)]
 ```{r q6}
 
 # enter code to subset your Seurat object in place of "..."
-se.HER2 <- SubsetSTData(...)
+# se.HER2 <- SubsetSTData(...)
 
 # inspect Seurat object
 se.HER2
@@ -562,9 +664,12 @@ se.HER2
 
 ```{r q7}
 
+se.HER2 <- SubsetSTData(se.HER2, spots = keep.spots, features = keep.genes)
 # Replace the NA values with your answers
-ans.q7.1 <- NA
-ans.q7.2 <- NA
+ans.q7.1 <- ans2 - length(keep.genes)
+ans.q7.1 <- 36601 - 12703
+ans.q7.2 <- ans1 - length(keep.spots)
+ans.q7.2 <- 3798 - 3745
 
 cat(sprintf("Removed genes: %s\nRemoved spots: %s", ans.q7.1, ans.q7.2))
 
@@ -574,7 +679,7 @@ Run the code chunk below to check your answers.
 
 ```{r check_q7, warning=TRUE}
 
-source("checks.R")
+source("checks_semla.R")
 q7_check(list(ans.q7.1, ans.q7.2))
 
 ```
@@ -590,7 +695,7 @@ printed information what the function is currently doing and it's progress.
 
 ```{r sctrans, echo=FALSE, eval=TRUE}
 
-se.HER2 <- SCTransform(se.HER2, verbose = FALSE)
+se.HER2 <- SCTransform(se.HER2, verbose = FALSE, assay = "Spatial")
 se.HER2
 
 ```
@@ -618,7 +723,7 @@ which is used by the latter to actually identify the clusters.
 _Comment_ : You will see that we specify a `seed` in some of the functions
 below, this puts our machine in a specific state that makes random numbers being
 generated the same in all instances. Using these random seeds makes the analysis reproducible. 
-**TLDR: Don't change the seed value plz**.
+**TLDR: Don't change the seed value plz, not even to 80085 or 42**.
 
 _Comment_ : Here we make use of the pipe function `%>%` to pass the data from function to 
 function. One way to interpret it is: whatever is on the left hand side of `%>%` is passed as
@@ -651,8 +756,9 @@ DimPlot(se.HER2, label = TRUE)
 
 So far this is very similar to what we did with the single cell data, but what
 is really cool here is that we can see how these clusters are arranged in _the
-real physical space_. In order to do so, we use the `FeatureOverlay()` function to
-color the spots by their cluster identity.
+real physical space_. In order to do so, we use the `MapLabels()` function to
+color the spots by their cluster identity. We use `MapLabels()` because the 
+cluster classification is a discrete set of values.
 
 _Comment_ : The cluster identities are stored in the metadata slot as
 `SCT_snn_res.resolution`, where `resolution` is equal to the parameter value
@@ -664,7 +770,8 @@ results instead.
 ```{r plot_clust, fig.width=6, fig.height=6}
 
 # plot clusters spatially
-FeatureOverlay(se.HER2, features = "seurat_clusters", pt.size = 1.5, pt.alpha = 0.5) &
+MapLabels(se.HER2, column_name = "seurat_clusters", pt_size = 1.5, pt_alpha = 0.5,
+          image_use = "raw", colors = viridis::turbo(n = length(unique(se.HER2$SCT_snn_res.0.2)))) &
   guides(fill = guide_legend(override.aes = list(size = 5)))
 
 ```
@@ -702,8 +809,8 @@ it's a win-win!
 ```{r q8}
 
 # Enter the answers to question 9 here
-q8.ans1 <- NA
-q8.ans2 <- NA
+q8.ans1 <- 8
+q8.ans2 <- 5
 
 # print answers
 cat(sprintf("There are %d clusters\nCluster %d overlaps with the DCIS regions", q8.ans1, q8.ans2))
@@ -714,7 +821,7 @@ You can now check the answers before you proceed.
 
 ```{r check_q8, warning=TRUE}
 
-source("checks.R")
+source("checks_semla.R")
 q8_check(list(q8.ans1, q8.ans2))
 
 ```
@@ -749,6 +856,9 @@ overlap with the actual clusters they are supposed to represent. For a quick
 assessment, let us plot _one_ marker gene associated with each cluster using the
 `spatial.plot` function.
 
+_Comment_ : For plotting gene expression, we need to use the `MapFeatures()` function 
+instead of `MapLabels()`. Can you guess why?
+
 ```{r plot_markers,fig.width = 10, fig.height=9}
 
 # grab the name of the first marker gene for each cluster
@@ -757,7 +867,8 @@ de.markers.one <- de.markers %>%
   slice_head(n = 1)
 
 #Plot first marker gene for each cluster spatially
-FeatureOverlay(se.HER2, features = de.markers.one$gene, ncols = 3, pt.size = 1, pt.alpha = 0.5, show.sb = F)
+MapFeatures(se.HER2, features = de.markers.one$gene, ncol = 3, pt_size = 0.5, pt_alpha = 0.5,  
+            add_scalebar = TRUE)
 
 ```
 
@@ -780,11 +891,12 @@ composition of different contributions from respective factor. The process of
 retrieving and characterizing these factors, might be referred to as a form of
 **decomposition** or **factorization**.
 
-Such factors can be learnt from the data, but also defined _a priori_; a good
+Such factors can be _learnt from the data_, but also defined _a priori_; a good
 example of the latter is when single cell data is integrated with spatial data
 (next section) - we can then consider the cell types associated expression
-profiles as latent factors. However, for now, we will focus on the case when we
-do not know the character of our factors prior to the analysis.
+profiles as latent factors. Now we will focus on factorization where no input
+is required from us, but you should know that most of these algorithms also accept
+user input regarding the number of factors to identify.
 
 There is a plethora of different methods to conduct factor analysis or modeling
 of similar problems, some of them designed specifically with gene expression
@@ -796,9 +908,10 @@ When applied to RNA-seq data (scRNA-seq or Visium for example), NNMF learns two
 matrices: one describes the structure between genes and one describes the structure 
 between samples (cells or spots). Let's call these two matrices _H_ and _W_.
 
-We can run the NNMF algorithm using the `RunNMF()` function. The algorithm can 
-take some time to compute, but we do not need to run it on all genes available 
-in our gene expression matrix. Instead, we can define a smaller set of genes 
+We can run the NNMF algorithm using the `RunNMF()` function. The implementation 
+of NMF we are going to use is tremendously fast, so we do not need to worry about
+run-time. In slower implementations, it is recommended to compute the factorization
+using a subset of our gene expression data by defining a smaller set of genes
 that capture most of the variability in our data.
 
 ### Q9
@@ -807,16 +920,16 @@ that capture most of the variability in our data.
 > genes.
 >
 > *Comment* : The top variable genes were already identified during the normalization
-> step with `SCTransform()` and we can get those by running `Variablefeatures(se.HER2)`.
+> step with `SCTransform()` and we can get those by running `VariableFeatures(se.HER2)`.
 
 ```{r q9}
 
 # Enter the code here
 # Replace NA for your answer
 
-factorization.genes <- NA
+factorization.genes <- VariableFeatures(se.HER2)[1:1000]
 
-# Print out first 10 entires
+# Print out first 5 entires
 head(factorization.genes)
 ```
 
@@ -824,19 +937,66 @@ Answer check.
 
 ```{r check_q9, warning=TRUE}
 
-source("checks.R")
+source("checks_semla.R")
 q9_check(factorization.genes)
 
 ```
 
-Now we can run the NNMF using the `RunNMF()` function. At this step, we also need
-to decide how many factors to use for the factorization. Here we will use 10.
+Now we can run the NNMF using the `RunNMF()` function. For the NMF implementation
+we are using here, we do not need to manually define the number of factors to use
+for the factorization. It will run cross-validation to find the best rank (number 
+of factors), and it will learn a model at that rank.
+
+_Comment_ : While we do not need to subset our gene expression data here, this can
+be achieved with the `SubsetSTData()` function by feeding it a vector of genes to keep
+in the `features=` argument. 
+
+_Comment_ : The package responsible for this very-fast NMF implementation is not quite 
+stable. In order to run the `RunNMF()` function, we first need to quickly
+"hack" our Seurat object. This issue will be addressed by the developers of the 
+`RunNMF()` package, but they are not there yet unfortunately. This means we get
+to come up with some workarounds, yipee. In this case, we will create a compatible
+assay inside of our Seurat object that will contain the expression data of the 
+3000 most variable genes for all the spots. **Plz do not change the seed**
 
 ```{r run_nnmf}
 
-se.HER2 <- RunNMF(se.HER2, features = factorization.genes, nfactors = 10)
+# first let us hack our seurat object by adding a compatible gene expression assay 
+# with only the variable genes
+se.HER2[["Spatial3"]] <- as(
+  object = subset(se.HER2[["Spatial"]], features = VariableFeatures(se.HER2)),
+  Class = "Assay"
+)
+
+# see that now we have 2 assays in our seurat object: 
+#   - Spatial is our original data
+#   - SCT stores our SCTransform() normalized data
+#   - Spatial3 is the assay we jus created, compatible with the RunNMF() function
+Assays(se.HER2)
+
+# next up, let's run NMF to identify our sweet gene expression factors on the compatible assay
+# if we wanted to find a defined number of factors, we need to feed an integer to the -k- variable
+# for automatic factor identification, we should set it to NULL
+set.seed(1337)
+se.HER2 <- RunNMF(se.HER2, 
+                  assay = "Spatial3",
+                  # k = 10
+                  k = NULL
+)
 
 ```
+
+We can actually take a look at how the method has determined which rank (number of factors)
+is optimal for the inputted dataset. 
+
+```{r nmf_ranking}
+
+RankPlot(se.HER2)
+
+```
+
+We can see that the global minimum of the bottom function is achieved at x = 20, 
+so the model has determined that 20 factors can describe the variability of our dataset.
 
 The NNMF output is stored as a `DimReduc` (dimensionality reduction) object in 
 our `Seurat` object. We can actually think of NNMF as a dimensionality reduction 
@@ -845,7 +1005,7 @@ dimensional representation. Perhaps this is easiest to grasp by looking at the r
 
 ```{r view_nnmf}
   
-nnmf <- se.HER2[["NMF"]]
+nnmf <- se.HER2@reductions$nmf
   
 H <- nnmf@cell.embeddings
 W <- nnmf@feature.loadings
@@ -857,7 +1017,7 @@ head(W)
   
 ```
 
-In both matrices, we have 10 columns, 1 for each factor. In the first matrix _H_,
+In both matrices, we have **20** columns, 1 for each factor. In the first matrix _H_,
 we have spot labels as row names and we can extract information about how much 
 each spot contribute to each factor. In the second matrix _W_, we have genes as
 row names and can extract information about how much each gene contribute to each 
@@ -874,20 +1034,36 @@ spot that originates from the respective factor.
 
 Let's visualize our factors on the tissue to understand what this means.
 
-```{r plot_nnmf, fig.width=12, fig.height=8}
-  
-ST.DimPlot(se.HER2, reduction = "NMF", dims = 1:10, grid.ncol = 4, center.zero = FALSE, palette = "Spectral", show.sb = FALSE) &
-  theme(strip.text = element_blank())
+```{r plot_nnmf, fig.width=20, fig.height=20}
 
+# grab the total number of factors that have been identified
+k <- ncol(H)
+# plotting
+
+MapFeatures(se.HER2,
+            features = paste0("NMF_", 1:k),
+            override_plot_dims = TRUE, image_use = NULL,
+            scale = "free",
+            colors = viridis::magma(n = 11, direction = -1), 
+            pt_size = 1
+) &
+  theme(legend.text = element_text(angle = 50),
+        strip.text = element_blank(),
+        plot.title = element_blank())
+
+im_ann <- png::readPNG("img/annot.png") %>% as.raster()
+par(mar = c(0,0,0,0))
+plot(im_ann)
 ```
+
 Hey isn't that neat?! We got some interesting factors popping up here, but
 before we look further into them, let's make sure you are on board with what we
 are doing!
 
 ### Q10
 
-> What are the 10 spots with the highest contribution to factor 10? What are the 10
-> genes with the highest contribution to factor 3?
+> What are the 10 spots with the highest contribution to factor 1? What are the 10
+> genes with the highest contribution to factor 9?
 >
 > Give your answers as comments in the code chunk below, they should be short and
 > concise, not more than a sentence or two.
@@ -897,12 +1073,18 @@ are doing!
 # Write code here
 
 # Enter the answers to question 10 here
-q10.ans1 <- NA
-q10.ans2 <- NA
+q10.ans1 <- as.data.frame(H) %>% 
+  arrange(desc(NMF_1)) %>% 
+  rownames()
+q10.ans1 <- q10.ans1[1:10]
+q10.ans2 <- as.data.frame(W) %>% 
+  arrange(desc(NMF_1)) %>% 
+  rownames()
+q10.ans2 <- q10.ans2[1:10]
 
 # print answers
-cat(sprintf("The spots with the highest contribution to factor 10 are: \n%s", paste(q10.ans1, collapse = "\n")), "\n\n")
-cat(sprintf("The genes with the highest contribution to factor 3 are: \n%s", paste(q10.ans2, collapse = "\n")))
+cat(sprintf("The spots with the highest contribution to factor 1 are: \n%s", paste(q10.ans1, collapse = "\n")), "\n\n")
+cat(sprintf("The genes with the highest contribution to factor 9 are: \n%s", paste(q10.ans2, collapse = "\n")))
 
 ```
 
@@ -910,23 +1092,30 @@ Now you can check you answers.
 
 ```{r check_q10, warning=TRUE}
 
-source("checks.R")
+source("checks_semla.R")
 q10_check(list(q10.ans1, q10.ans2))
 
 ```
 
-Factor 7 looks kinda interesting, almost as if it's surrounding the DCIS
+Factor 20 looks kinda interesting, almost as if it's surrounding the DCIS
 regions, let us have a closer look at which genes that are most strongly
 associated with this factor.
 
 
 ```{r plot_fctr7}
 
-FactorGeneLoadingPlot(se.HER2, factor = 7)
+PlotFeatureLoadings(se.HER2, 
+                    dims = 20, 
+                    reduction = "nmf", 
+                    nfeatures = 30,
+                    mode = "dotplot", 
+                    fill = "darkmagenta",
+                    pt_size = 3)
 
 ```
 
-So what we see here is *a lot* of genes whose names start with *IG*.
+So what we see here is *a lot* of genes whose names start with *IG*. Is the body
+reacting somehow to the cancerous lesion?
 
 ### Q11
 
@@ -934,7 +1123,7 @@ So what we see here is *a lot* of genes whose names start with *IG*.
 > biological process(es) each factor could represent. And, evaluation of results are
 > just as important as obtaining them. Thus your task is to -- with the help of the
 > internet if you like -- pick the biological process from the ones listed below that
-> you consider most likely that factor 7 is associated with.
+> you consider most likely that factor 21 is associated with.
 >
 > **Processes**
 >
@@ -947,9 +1136,9 @@ So what we see here is *a lot* of genes whose names start with *IG*.
 ```{r q11}
 
 # Answer Q11 with the number of the process you think is the right one
-ans.q11 <- NA
+ans.q11 <- 3
 
-print(sprintf("Factor 7 is associated with process %d", ans.q11))
+print(sprintf("Factor 20 is associated with process %d", ans.q11))
 
 ```
 
@@ -981,9 +1170,15 @@ print(sprintf("Factor 7 is associated with process %d", ans.q11))
 
 # code to produce the top.2.genes data.frame
 # replace NA with your the final data.frame
-top.2.genes <- NA
-
-
+top.2.genes <- as.data.frame(W) %>% 
+  rownames_to_column(var = "gene") %>% 
+  pivot_longer(!gene, names_to = "factor", values_to = "weight") %>% 
+  group_by(factor) %>% 
+  slice_max(order_by = weight, n = 2) %>% 
+  relocate(weight, .before = factor) %>% 
+  mutate(factor = str_replace(factor, "NMF", "factor"))
+top.2.genes <- top.2.genes[mixedorder(top.2.genes$factor),]
+  
 # Print out answer for reference
 top.2.genes
 ```
@@ -992,7 +1187,7 @@ And you guessed it, you can check your answers with the chunk below!
 
 ```{r check_q12, warning=TRUE}
 
-source("checks.R")
+source("checks_semla.R")
 q12_check(top.2.genes)
 
 ```
@@ -1018,7 +1213,7 @@ a different type of data, namely _single cell RNA-seq_.
 In single cell experiments, each data point corresponds to one individual cell
 (once doublets have been removed). This means that if we assign an identity
 (e.g., cell type or cluster), we can learn the expression profiles and then
-deconvolve our spatial data with them.
+deconvolute our spatial data with them.
 
 Multiple strategies exists to "map" single cell information onto the spatial
 data, but we will use output from a tool called `stereoscope` (from the paper
@@ -1034,7 +1229,7 @@ To map cell types from single cell data onto the tissue, we need a good single
 cell data set which is at least _somewhat similar_ to our spatial data, i.e.
 where we expect the same set of cell types to be present in both data sets.
 
-Fortunately we have some connections down under, where a group at the Garvan
+Fortunately we have some connections at Dinosaur Island, where a group at the Garvan
 Institute of Australia have produced an _excellent_ single cell data set which
 they've shared with us, this is the same data set as you used in the single cell
 lab.
@@ -1055,6 +1250,7 @@ stsc <- read.table("data/stereoscope-proportions.tsv.gz",
 
 # transpose to have features as rows and spots as columns
 stsc <- t(stsc)
+colnames(stsc) <- str_replace(colnames(stsc), "_1", "")
 
 # ad a new assay called stereoscope to our se object
 stsc <- stsc[, colnames(se.HER2)]
@@ -1064,7 +1260,7 @@ se.HER2[["stereoscope"]] <- CreateAssayObject(counts = stsc)
 DefaultAssay(se.HER2) <- "stereoscope"
 
 # inspect data
-GetAssayData(se.HER2)[1:5, 1:5]
+LayerData(se.HER2)[1:5, 1:5]
 
 ```
 
@@ -1084,7 +1280,7 @@ Now how about having a look at the spatial distribution of the celltypes:
 * T-cells
 * Epithelial 
 
-our beloved `FeatureOverlay()` comes in handy again
+our beloved `MapFeatures()` comes in handy again
 
 ```{r plot_cells, fig.width=12, fig.height=4}
 
@@ -1095,22 +1291,27 @@ selected.cell.types <- c(
   "Epithelial"
 )
 
-FeatureOverlay(se.HER2, features = selected.cell.types, ncols = 3, pt.size = 1)
+MapFeatures(se.HER2, 
+            image_use = "raw",
+            features = selected.cell.types, 
+            ncol = 3, 
+            pt_size = 1) &
+  theme(plot.title = element_blank())
 
 ```
 
 So now we know how these 3 cell types localize in the tissue, and we could
 theoretically plot the remaining 5 without much problem. But imagine if we had
-more than 50 cell types (not uncommon), then we'd have to generate _lot of
-plots_. Also, with more cell types, it becomes increasingly hard to get a
+more than 50 cell types (not uncommon), then we'd have to generate _many many plots_. 
+Also, with more cell types, it becomes increasingly hard to get a
 comprehensive overview of all the types and their relations. Especially if we
 want to start assess patterns of interaction and co-localization, which is often
 of great interest to know. To exemplify, if we were to plot every pair of cell
 types in order to see if they had similar spatial distributions, we have to look
-through $50!/(48!2!) = 1225$ pairs... also known as "hella lot".
+through $50!/(48!2!) = 1225$ pairs... also known as "i really do not want to do that".
 
 In order to condense the rich information that the single cell mapping has given
-us, we can instead look at the (Pearson) correlation of the proportion values
+us, we can instead look at the (Spearman) correlation of the proportion values
 between different cell types. This will tell us which cell types that have
 similar spatial distributions (co-localizing) as well as which types that tend
 to populate different regions.
@@ -1123,11 +1324,11 @@ then visualize them in a heatmap.
 # generate a color palette
 color.pal <- rev(colorRampPalette(brewer.pal(11, "RdBu"))(50))
 
-# compute pearson correlation of cell types across spots
-cors <- GetAssayData(se.HER2) %>%
+# compute spearman correlation of cell types across spots
+cors <- LayerData(se.HER2) %>%
   as.matrix() %>%
   t() %>% 
-  cor()
+  cor(method = "spearman")
 
 # set diagonal to NA
 diag(cors) <- NA
@@ -1155,15 +1356,15 @@ while the same is true for red and positive values.
 ```{r q13}
 
 # Replace the NA values with your answers below
-ans.q13.1 <- NA
-ans.q13.2 <- NA
+ans.q13.1 <- "Epithelial"
+ans.q13.2 <- "Myeloid"
 cat(sprintf("Myeloid cells strongly anticorrelate with %s cells\nT-cells strongly spatially co-localize with %s", ans.q13.1, ans.q13.2))
 
 ```
 Let's check that the final answer is correct.
 
 ```{r check_q13}
-source("checks.R")
+source("checks_semla.R")
 q13_check(ans = list(ans.q13.1, ans.q13.2))
 ```
 
@@ -1178,6 +1379,13 @@ is something wrong with the code.
 if working in pairs - each of you should hand in two (identical) reports where
 the names of both authors are clearly stated. For further information see the
 guidelines on the course web-page.
+
+**Extra information**: Now that you have made it past the lab's exercises, if you 
+are more curious about what one can do bioinformatically with this type of data,
+feel free to check out `semla`'s website and GitHub. There you can find a lot of 
+tutorials, and we are always looking to improve the package! :)
+[github](https://github.com/ludvigla/semla)
+[github](https://ludvigla.github.io/semla/)
 
 ```{r session_info}
 sessionInfo()
