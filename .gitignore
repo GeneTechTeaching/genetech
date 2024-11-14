@@ -2,7 +2,5 @@
 .Rhistory
 .RData
 *.html
-labs/ex4/checks_stu.R
 labs/ex4/data/filtered_feature_bc_matrix.h5
 labs/ex4/data/spatial/
-labs/ex4/main_stu.Rmd
