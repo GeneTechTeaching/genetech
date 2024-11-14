@@ -168,7 +168,7 @@ functions designed to work with spatial data.
 ```{r load_data}
 
 # Here we create a data.frame pointing to various files that will be used
-# by STUtility to create our Seurat object
+# by semla to create our Seurat object
 infoTable <- data.frame(samples = "./data/filtered_feature_bc_matrix.h5",
                         imgs = "./data/spatial/tissue_hires_image.png",
                         spotfiles = "./data/spatial/tissue_positions_list.csv",
@@ -218,10 +218,10 @@ Give your answers below
 # by assigning the values (answers) to
 # the variables ans1, ans2, ans3 and ans4
 
-ans1 <- 3798 #NA
-ans2 <- 36601 # NA
-ans3 <- sum(se.HER2$nCount_Spatial)
-ans4 <- "LINC01360"# NA
+ans1 <- NA
+ans2 <- NA
+ans3 <- NA
+ans4 <- NA
 
 cat(sprintf("No. spots: %d \nNo genes: %d\nTotal no. UMIs: %d\n1306th gene: %s", ans1, ans2, ans3, ans4))
 
@@ -459,7 +459,7 @@ Write down the gene expressed mainly in the DCIS region and check your answer.
 
 ```{r check_q3, warning=TRUE}
 # Replace NA with the gene highly expressed in the DCIS region here
-ans.q3 <- "MGP"# NA
+ans.q3 <- NA
 
 source("checks.R")
 q3_check(ans.q3)
@@ -527,9 +527,7 @@ however chosen somewhat arbitrary.
 # Enter code to create the keep.spots vector here
 # Replace NA for the code that generates the requested output.
 
-keep.spots <- se.HER2[[]] %>% 
-  filter(nFeature_Spatial >= 800 & nCount_Spatial >= 2000) %>% 
-  rownames()  #NA
+keep.spots <- NA
 
 ```
 
@@ -599,9 +597,7 @@ h3 + h4
 # Enter code to create the keep.genes vector here
 # Replace NA for the code that generates the requested output.
 
-keep.genes <- unique(filter(gene.data, nCounts >= 300 &
-                              nObs > 5) %>% rownames())
-# keep.genes <- NA
+keep.genes <- NA
 ```
 
 Again, you can check whether your answers are correct with the next code chunk!
@@ -664,12 +660,9 @@ se.HER2
 
 ```{r q7}
 
-se.HER2 <- SubsetSTData(se.HER2, spots = keep.spots, features = keep.genes)
 # Replace the NA values with your answers
-ans.q7.1 <- ans2 - length(keep.genes)
-ans.q7.1 <- 36601 - 12703
-ans.q7.2 <- ans1 - length(keep.spots)
-ans.q7.2 <- 3798 - 3745
+ans.q7.1 <- NA
+ans.q7.2 <- NA
 
 cat(sprintf("Removed genes: %s\nRemoved spots: %s", ans.q7.1, ans.q7.2))
 
@@ -809,8 +802,8 @@ it's a win-win!
 ```{r q8}
 
 # Enter the answers to question 9 here
-q8.ans1 <- 8
-q8.ans2 <- 5
+q8.ans1 <- NA
+q8.ans2 <- NA
 
 # print answers
 cat(sprintf("There are %d clusters\nCluster %d overlaps with the DCIS regions", q8.ans1, q8.ans2))
@@ -927,7 +920,7 @@ that capture most of the variability in our data.
 # Enter the code here
 # Replace NA for your answer
 
-factorization.genes <- VariableFeatures(se.HER2)[1:1000]
+factorization.genes <- NA
 
 # Print out first 5 entires
 head(factorization.genes)
@@ -963,10 +956,8 @@ assay inside of our Seurat object that will contain the expression data of the
 
 # first let us hack our seurat object by adding a compatible gene expression assay 
 # with only the variable genes
-se.HER2[["Spatial3"]] <- as(
-  object = subset(se.HER2[["Spatial"]], features = VariableFeatures(se.HER2)),
-  Class = "Assay"
-)
+se.HER2[["Spatial3"]] <- CreateAssayObject(counts = subset(se.HER2[["Spatial"]], 
+                                                           features = VariableFeatures(se.HER2))$counts)
 
 # see that now we have 2 assays in our seurat object: 
 #   - Spatial is our original data
@@ -995,8 +986,8 @@ RankPlot(se.HER2)
 
 ```
 
-We can see that the global minimum of the bottom function is achieved at x = 20, 
-so the model has determined that 20 factors can describe the variability of our dataset.
+We can see that the global minimum of the bottom function is achieved at x = 23, 
+so the model has determined that 23 factors can describe the variability of our dataset.
 
 The NNMF output is stored as a `DimReduc` (dimensionality reduction) object in 
 our `Seurat` object. We can actually think of NNMF as a dimensionality reduction 
@@ -1017,7 +1008,7 @@ head(W)
   
 ```
 
-In both matrices, we have **20** columns, 1 for each factor. In the first matrix _H_,
+In both matrices, we have **23** columns, 1 for each factor. In the first matrix _H_,
 we have spot labels as row names and we can extract information about how much 
 each spot contribute to each factor. In the second matrix _W_, we have genes as
 row names and can extract information about how much each gene contribute to each 
@@ -1073,14 +1064,8 @@ are doing!
 # Write code here
 
 # Enter the answers to question 10 here
-q10.ans1 <- as.data.frame(H) %>% 
-  arrange(desc(NMF_1)) %>% 
-  rownames()
-q10.ans1 <- q10.ans1[1:10]
-q10.ans2 <- as.data.frame(W) %>% 
-  arrange(desc(NMF_1)) %>% 
-  rownames()
-q10.ans2 <- q10.ans2[1:10]
+q10.ans1 <- NA
+q10.ans2 <- NA
 
 # print answers
 cat(sprintf("The spots with the highest contribution to factor 1 are: \n%s", paste(q10.ans1, collapse = "\n")), "\n\n")
@@ -1097,7 +1082,7 @@ q10_check(list(q10.ans1, q10.ans2))
 
 ```
 
-Factor 20 looks kinda interesting, almost as if it's surrounding the DCIS
+Factor 23 looks kinda interesting, almost as if it's surrounding the DCIS
 regions, let us have a closer look at which genes that are most strongly
 associated with this factor.
 
@@ -1105,7 +1090,7 @@ associated with this factor.
 ```{r plot_fctr7}
 
 PlotFeatureLoadings(se.HER2, 
-                    dims = 20, 
+                    dims = 23, 
                     reduction = "nmf", 
                     nfeatures = 30,
                     mode = "dotplot", 
@@ -1136,9 +1121,16 @@ reacting somehow to the cancerous lesion?
 ```{r q11}
 
 # Answer Q11 with the number of the process you think is the right one
-ans.q11 <- 3
+ans.q11 <- NA
 
-print(sprintf("Factor 20 is associated with process %d", ans.q11))
+print(sprintf("Factor 23 is associated with process %d", ans.q11))
+
+```
+
+```{r check_q11, warning=TRUE}
+
+source("checks.R")
+q11_check(ans.q11)
 
 ```
 
@@ -1170,14 +1162,7 @@ print(sprintf("Factor 20 is associated with process %d", ans.q11))
 
 # code to produce the top.2.genes data.frame
 # replace NA with your the final data.frame
-top.2.genes <- as.data.frame(W) %>% 
-  rownames_to_column(var = "gene") %>% 
-  pivot_longer(!gene, names_to = "factor", values_to = "weight") %>% 
-  group_by(factor) %>% 
-  slice_max(order_by = weight, n = 2) %>% 
-  relocate(weight, .before = factor) %>% 
-  mutate(factor = str_replace(factor, "NMF", "factor"))
-top.2.genes <- top.2.genes[mixedorder(top.2.genes$factor),]
+top.2.genes <- NA
   
 # Print out answer for reference
 top.2.genes
@@ -1356,8 +1341,8 @@ while the same is true for red and positive values.
 ```{r q13}
 
 # Replace the NA values with your answers below
-ans.q13.1 <- "Epithelial"
-ans.q13.2 <- "Myeloid"
+ans.q13.1 <- NA
+ans.q13.2 <- NA
 cat(sprintf("Myeloid cells strongly anticorrelate with %s cells\nT-cells strongly spatially co-localize with %s", ans.q13.1, ans.q13.2))
 
 ```
@@ -1373,7 +1358,7 @@ q13_check(ans = list(ans.q13.1, ans.q13.2))
 
 **How**:  Knit this document, and hand in the resulting html-file on Canvas. Make
 sure you have solved all the questions. If the document doesn't compile, there
-is something wrong with the code.
+is something wrong with the code. 
 
 **Deadline**: Your report is due 23:59 one week after the scheduled lab session;
 if working in pairs - each of you should hand in two (identical) reports where
@@ -1383,10 +1368,11 @@ guidelines on the course web-page.
 **Extra information**: Now that you have made it past the lab's exercises, if you 
 are more curious about what one can do bioinformatically with this type of data,
 feel free to check out `semla`'s website and GitHub. There you can find a lot of 
-tutorials, and we are always looking to improve the package! :)
+tutorials, and we are always looking to improve the package! :) \n
 [github](https://github.com/ludvigla/semla)
-[github](https://ludvigla.github.io/semla/)
+[website](https://ludvigla.github.io/semla/)
 
 ```{r session_info}
+date()
 sessionInfo()
 ```
