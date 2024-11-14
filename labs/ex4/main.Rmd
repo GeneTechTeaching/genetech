@@ -231,7 +231,7 @@ You can now check the answers by running the code chunk below!
 
 ```{r q1_check, warning=TRUE}
 
-source("checks_semla.R")
+source("checks.R")
 q1_check(ans = list(ans1, ans2, ans3, ans4))
 
 ```
@@ -537,7 +537,7 @@ Now you can check your answer below before you proceed!
 
 ```{r check_q4, warning=TRUE}
 
-source("checks_semla.R")
+source("checks.R")
 q4_check(ans = keep.spots)
 
 ```
@@ -608,7 +608,7 @@ Again, you can check whether your answers are correct with the next code chunk!
 
 ```{r check_q5, warning=TRUE}
 
-source("checks_semla.R")
+source("checks.R")
 q5_check(keep.genes)
 
 ```
@@ -679,7 +679,7 @@ Run the code chunk below to check your answers.
 
 ```{r check_q7, warning=TRUE}
 
-source("checks_semla.R")
+source("checks.R")
 q7_check(list(ans.q7.1, ans.q7.2))
 
 ```
@@ -821,7 +821,7 @@ You can now check the answers before you proceed.
 
 ```{r check_q8, warning=TRUE}
 
-source("checks_semla.R")
+source("checks.R")
 q8_check(list(q8.ans1, q8.ans2))
 
 ```
@@ -937,7 +937,7 @@ Answer check.
 
 ```{r check_q9, warning=TRUE}
 
-source("checks_semla.R")
+source("checks.R")
 q9_check(factorization.genes)
 
 ```
@@ -1092,7 +1092,7 @@ Now you can check you answers.
 
 ```{r check_q10, warning=TRUE}
 
-source("checks_semla.R")
+source("checks.R")
 q10_check(list(q10.ans1, q10.ans2))
 
 ```
@@ -1187,7 +1187,7 @@ And you guessed it, you can check your answers with the chunk below!
 
 ```{r check_q12, warning=TRUE}
 
-source("checks_semla.R")
+source("checks.R")
 q12_check(top.2.genes)
 
 ```
@@ -1364,7 +1364,7 @@ cat(sprintf("Myeloid cells strongly anticorrelate with %s cells\nT-cells strongl
 Let's check that the final answer is correct.
 
 ```{r check_q13}
-source("checks_semla.R")
+source("checks.R")
 q13_check(ans = list(ans.q13.1, ans.q13.2))
 ```
 
